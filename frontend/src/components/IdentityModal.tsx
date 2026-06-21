@@ -40,8 +40,11 @@ export default function IdentityModal({ isOpen, onClose }: IdentityModalProps) {
   const redirectToDashboard = () => {
     if (typeof window !== 'undefined') {
       const host = window.location.host;
+      const hostname = window.location.hostname;
       const protocol = window.location.protocol;
-      if (!host.startsWith('app.')) {
+      if (hostname.endsWith('.vercel.app')) {
+        window.location.href = '/dashboard';
+      } else if (!host.startsWith('app.')) {
         window.location.href = `${protocol}//app.${host}/dashboard`;
       } else {
         window.location.href = '/dashboard';

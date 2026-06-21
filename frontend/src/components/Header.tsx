@@ -17,12 +17,29 @@ export default function Header() {
   const [copied, setCopied] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAppSubdomain, setIsAppSubdomain] = useState(false);
+  const [launchUrl, setLaunchUrl] = useState('/dashboard');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsAppSubdomain(window.location.hostname.startsWith('app.'));
+      const hostname = window.location.hostname;
+      const host = window.location.host;
+      const protocol = window.location.protocol;
+
+      setIsAppSubdomain(hostname.startsWith('app.'));
+
+      if (hostname.endsWith('.vercel.app')) {
+        setLaunchUrl('/dashboard');
+      } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        setLaunchUrl(`${protocol}//app.${host}/dashboard`);
+      } else {
+        setLaunchUrl(`${protocol}//app.${host}/dashboard`);
+      }
     }
   }, []);
+
+  const isAppSpace = isAppSubdomain || ['/dashboard', '/create', '/audit', '/invoice', '/pay', '/reputation'].some(path => 
+    pathname.startsWith(path)
+  ) || pathname.startsWith('/app/');
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -71,7 +88,7 @@ export default function Header() {
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-6xl px-4 transition-all duration-300">
         <div className="glass-panel backdrop-blur-2xl bg-black/45 mx-auto flex h-16 items-center justify-between gap-4 rounded-full px-6">
           {/* Logo */}
-          <Link href={isAppSubdomain ? "/dashboard" : "/"} className="flex items-center gap-3 group relative shrink-0">
+          <Link href={isAppSpace ? "/dashboard" : "/"} className="flex items-center gap-3 group relative shrink-0">
             <MurkLogo size={44} glow={true} />
             <div className="hidden sm:flex flex-col">
               <span className="text-lg font-black tracking-wider text-white group-hover:text-primary transition-colors">
@@ -81,7 +98,7 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          {isAppSubdomain ? (
+          {isAppSpace ? (
             activeAddress && (
               <nav className="hidden md:flex items-center gap-2">
                 {navItems.map((item) => {
@@ -119,7 +136,7 @@ export default function Header() {
 
           {/* Wallet and Keys Actions / Launch Button */}
           <div className="flex items-center gap-3 shrink-0">
-            {isAppSubdomain ? (
+            {isAppSpace ? (
               <>
                 {activeAddress && activePubKey && (
                   <div className="hidden lg:flex items-center gap-2.5 rounded-full bg-black/40 border border-white/5 px-4 py-1.5 text-xs text-text-secondary shadow-inner">
@@ -176,7 +193,7 @@ export default function Header() {
               </>
             ) : (
               <Link 
-                href="http://app.localhost:3000" 
+                href={launchUrl}
                 className="inline-flex items-center gap-1.5 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold text-xs uppercase tracking-wider py-2 px-5 rounded-full transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-98 cursor-pointer"
               >
                 Launch App

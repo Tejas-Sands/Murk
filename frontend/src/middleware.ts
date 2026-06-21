@@ -7,6 +7,8 @@ export function middleware(request: NextRequest) {
 
   // Check if the hostname starts with 'app.'
   const isAppSubdomain = host.startsWith('app.');
+  // Check if the hostname ends with '.vercel.app'
+  const isVercelDomain = host.endsWith('.vercel.app');
 
   if (isAppSubdomain) {
     // If accessing root of app subdomain, redirect/rewrite to dashboard
@@ -31,6 +33,12 @@ export function middleware(request: NextRequest) {
     const matchedPath = appPaths.find(path => url.pathname.startsWith(path));
 
     if (matchedPath) {
+      if (isVercelDomain) {
+        // Vercel deployment domains (.vercel.app) do not support custom subdomains like app.*.vercel.app
+        // So we rewrite internally without redirecting to a subdomain.
+        url.pathname = `/app${url.pathname}`;
+        return NextResponse.rewrite(url);
+      }
       const protocol = request.headers.get('x-forwarded-proto') || 'http';
       // Construct the subdomain URL. E.g. app.localhost:3000
       const redirectUrl = `${protocol}://app.${host}${url.pathname}${url.search}`;
