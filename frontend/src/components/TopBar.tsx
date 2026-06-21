@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Bell, Menu, Copy, Check } from 'lucide-react';
+import { Search, Bell, Menu, Copy, Check, LogOut } from 'lucide-react';
 import { useCurrentAccount, ConnectButton } from '@mysten/dapp-kit';
 import { useMurkIdentity } from '@/hooks/useMurkIdentity';
 import { useECDHKeypair } from '@/hooks/useECDHKeypair';
@@ -13,7 +13,7 @@ interface TopBarProps {
 
 export default function TopBar({ pageTitle = 'Dashboard', onMenuClick }: TopBarProps) {
   const account = useCurrentAccount();
-  const { profile } = useMurkIdentity();
+  const { profile, logout } = useMurkIdentity();
   const { keys } = useECDHKeypair();
   
   const [copied, setCopied] = useState(false);
@@ -85,7 +85,7 @@ export default function TopBar({ pageTitle = 'Dashboard', onMenuClick }: TopBarP
         <div className="h-8 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
 
         <div className="flex items-center">
-          {!account ? (
+          {!profile && !account ? (
             <ConnectButton className="!bg-brand !text-white hover:!opacity-90 !rounded-full !py-2 !px-4 !text-label !font-bold transition-all" />
           ) : (
             <div className="flex items-center gap-3">
@@ -103,6 +103,14 @@ export default function TopBar({ pageTitle = 'Dashboard', onMenuClick }: TopBarP
                   {profile?.name ? profile.name.charAt(0).toUpperCase() : activeAddress?.charAt(2).toUpperCase() || '?'}
                 </span>
               </div>
+
+              <button 
+                onClick={logout}
+                className="p-2 text-text-secondary hover:text-[#FF4A4A] hover:bg-[#FF4A4A]/10 rounded-full transition-all cursor-pointer ml-1"
+                title="Disconnect Wallet & Session"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           )}
         </div>
