@@ -11,16 +11,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { profile, isLoading } = useMurkIdentity();
   const pathname = usePathname();
   const [checking, setChecking] = useState(true);
+  const [initDelay, setInitDelay] = useState(true);
 
   useEffect(() => {
-    if (!isLoading) {
+    const timer = setTimeout(() => {
+      setInitDelay(false);
+    }, 1000); // 1s grace period for wallet auto-connection
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !initDelay) {
       // Check if current page is an authenticated route
       const isAuthRoute = [
         '/dashboard', '/create', '/audit',
         '/app/dashboard', '/app/create', '/app/audit'
       ].some(path => pathname === path || pathname.startsWith(path + '/'));
 
-      if (isAuthRoute && (!account || !profile)) {
+      const needsWalletConnection = profile?.provider === 'wallet';
+      const isAuthorized = profile && (!needsWalletConnection || account);
+
+      if (isAuthRoute && !isAuthorized) {
         // Redirect to main domain if accessing authenticated pages without wallet + profile session
         if (typeof window !== 'undefined') {
           const host = window.location.host;
@@ -36,7 +47,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         setChecking(false);
       }
     }
-  }, [account, profile, isLoading, pathname]);
+  }, [account, profile, isLoading, pathname, initDelay]);
 
   const isGuardActive = ['/dashboard', '/create', '/audit', '/app/dashboard', '/app/create', '/app/audit'].some(path => 
     pathname === path || pathname.startsWith(path + '/')
